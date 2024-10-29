@@ -1,0 +1,58 @@
+program GasMonteCarlo
+  implicit none
+  integer, parameter :: N = 1000      ! Número de partículas
+  integer, parameter :: steps = 10000 ! Número de passos
+  real, parameter :: L = 10.0         ! Tamanho do contêiner
+  real, parameter :: T = 300.0        ! Temperatura (K)
+  real, parameter :: kB = 1.380649e-23 ! Constante de Boltzmann
+  real, dimension(N) :: x, y, vx, vy
+  integer :: i, s
+  real :: KE, KE_total
+
+  call random_seed()
+
+  ! Inicialização das posições e velocidades
+  do i = 1, N
+     x(i) = rand() * L
+     y(i) = rand() * L
+     vx(i) = random_normal(0.0, sqrt(kB*T))
+     vy(i) = random_normal(0.0, sqrt(kB*T))
+  end do
+
+  KE_total = 0.0
+
+  ! Simulação
+  do s = 1, steps
+     ! Atualização das posições
+     do i = 1, N
+        x(i) = x(i) + vx(i)
+        y(i) = y(i) + vy(i)
+        ! Condições de contorno periódicas
+        if (x(i) .gt. L) x(i) = x(i) - L
+        if (x(i) .lt. 0.0) x(i) = x(i) + L
+        if (y(i) .gt. L) y(i) = y(i) - L
+        if (y(i) .lt. 0.0) y(i) = y(i) + L
+     end do
+     ! Cálculo da energia cinética total
+     KE = sum(0.5 * (vx**2 + vy**2))
+     KE_total = KE_total + KE
+  end do
+
+  print *, 'Energia cinética média por partícula: ', KE_total / (N * steps), ' J'
+end program GasMonteCarlo
+
+! Função para gerar números aleatórios entre 0 e 1
+real function rand()
+  implicit none
+  call random_number(rand)
+end function rand
+
+! Função para gerar números aleatórios com distribuição normal
+real function random_normal(mean, stddev)
+  implicit none
+  real, intent(in) :: mean, stddev
+  real :: u1, u2
+  call random_number(u1)
+  call random_number(u2)
+  random_normal = mean + stddev * sqrt(-2.0 * log(u1)) * cos(2.0 * 3.14159265 * u2)
+end function random_normal
