@@ -1,0 +1,45 @@
+program Ising1D
+  implicit none
+  integer, parameter :: N = 100       ! Número de spins
+  integer, parameter :: steps = 10000 ! Número de passos de Monte Carlo
+  real, parameter :: T = 2.0          ! Temperatura (em unidades de k_B/J)
+  integer :: spin(N)
+  integer :: i, j
+  real :: E, dE, beta
+  real :: r
+
+  call random_seed()
+  beta = 1.0 / T
+
+  ! Inicialização aleatória dos spins (+1 ou -1)
+  do i = 1, N
+     if (rand() .lt. 0.5) then
+        spin(i) = 1
+     else
+        spin(i) = -1
+     end if
+  end do
+
+  ! Loop de Monte Carlo
+  do i = 1, steps
+     ! Escolher um spin aleatoriamente
+     j = int(rand() * N) + 1
+     ! Cálculo da variação de energia
+     dE = 2.0 * spin(j) * (spin(mod(j-2,N)+1) + spin(mod(j,N)+1))
+     ! Decisão de flipar o spin
+     if (dE .le. 0.0 .or. exp(-beta*dE) .gt. rand()) then
+        spin(j) = -spin(j)
+     end if
+  end do
+
+  ! Cálculo da magnetização total
+  E = sum(spin) / real(N)
+
+  print *, 'Magnetização média por spin: ', E
+end program Ising1D
+
+! Função para gerar números aleatórios entre 0 e 1
+real function rand()
+  implicit none
+  call random_number(rand)
+end function rand
